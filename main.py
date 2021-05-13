@@ -32,28 +32,33 @@ class VkUser:
 
 
 class YaUploader:
-    def __init__(self, token: str):
+    def __init__(self, token: str, path):
         self.token = token
+        self.path = path
 
     def upload(self, amount=5): # Загружает фото по ссылкам из файла import.txt в папку import
         with open('import.txt') as f:
             lastimport = json.load(f)
             for i in tqdm(range(amount)):
-                requests.put('https://cloud-api.yandex.net/v1/disk/resources',
-                             params={'path': f'disk:/import'},
-                             headers={'Authorization': f'OAuth {ytoken}'}
-                             )
+                YaUploader.create_folder(self)
                 requests.post('https://cloud-api.yandex.net:443/v1/disk/resources/upload',
                               params={'path': f'disk:/import/{lastimport["response"]["items"][i]["likes"]["count"]}',
                                       'url': lastimport['response']['items'][i]['sizes'][-1]['url']},
                               headers={'Authorization': f'OAuth {ytoken}'})
                 time.sleep(1)
 
+    def create_folder(self): #Создает папку
+        r = requests.put('https://cloud-api.yandex.net/v1/disk/resources',
+                     params={'path': f'{path}'},
+                     headers={'Authorization': f'OAuth {ytoken}'}
+                     )
+        return r.status_code
+
 
 token = ''
 ytoken = ''
-
+path = 'disk:/import'
 
 VkUser(token, '5.126').get_photos(552934290)
-YaUploader(ytoken).upload(5)
+YaUploader(ytoken, path).upload(5)
 
